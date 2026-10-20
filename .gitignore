@@ -1,0 +1,15 @@
+__pycache__/
+*.py[cod]
+*$py.class
+*.db
+*.sqlite3
+.env
+venv/
+.venv/
+data/
+*.docx
+*.txt
+*.jpg
+*.png
+*.pdf
+.DS_Store

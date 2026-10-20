@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>تبدیل رایگان عکس و PDF به متن و فایل Word (OCR فارسی)</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <!-- Telegram WebApp SDK if loaded inside Telegram -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+  <div class="background-decorations">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+  </div>
+
+  <header class="header">
+    <div class="container header-container">
+      <div class="logo">
+        <span class="logo-icon">⚡️</span>
+        <div class="logo-text">
+          <h1>اسکنر و OCR فارسی رایگان</h1>
+          <p>تبدیل سریع عکس کتاب، جزوه و PDF به متن و Word</p>
+        </div>
+      </div>
+      <div class="header-badges">
+        <span class="badge badge-free">۱۰۰٪ کاملاً رایگان</span>
+        <span class="badge badge-speed">پردازش محلی فوق‌سریع</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="container main-content">
+    
+    <!-- Growth Banner (Telegram & Instagram) -->
+    <section class="growth-banner">
+      <div class="growth-card tg-card">
+        <div class="card-icon">📢</div>
+        <div class="card-info">
+          <h3>کانال رسمی تلگرام</h3>
+          <p>برای دریافت جدیدترین ابزارها، قالب‌ها و کدهای تخفیف عضو شوید</p>
+        </div>
+        <a href="https://t.me/YourChannel" target="_blank" class="btn btn-tg" id="tgChannelBtn">
+          عضویت در کانال تلگرام
+        </a>
+      </div>
+
+      <div class="growth-card ig-card">
+        <div class="card-icon">📸</div>
+        <div class="card-info">
+          <h3>استوری روزانه اینستاگرام</h3>
+          <p>کد مخفی استوری امروز را وارد کنید و قفل تبدیل نامحدود را باز کنید</p>
+        </div>
+        <div class="ig-input-group">
+          <input type="text" id="igCodeInput" placeholder="کد استوری امروز..." maxlength="15">
+          <button id="verifyIgBtn" class="btn btn-ig">تأیید کد</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Upload & OCR Studio -->
+    <section class="ocr-studio">
+      <div class="studio-card">
+        
+        <!-- Dropzone -->
+        <div class="dropzone" id="dropZone">
+          <input type="file" id="fileInput" accept="image/*,application/pdf" hidden>
+          <div class="dropzone-content">
+            <div class="upload-icon">📄</div>
+            <h3>عکس کتاب یا فایل PDF را اینجا بکشید و رها کنید</h3>
+            <p>یا روی دکمه زیر برای انتخاب فایل کلیک کنید (حداکثر ۱۵ مگابایت)</p>
+            <button type="button" class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
+              انتخاب عکس یا سند PDF
+            </button>
+            <div class="file-types-hint">پشتیبانی از فرمت‌های: JPG, PNG, WEBP, PDF</div>
+          </div>
+        </div>
+
+        <!-- Options Bar -->
+        <div class="options-bar">
+          <div class="option-item">
+            <label for="langSelect">🌐 زبان متن:</label>
+            <select id="langSelect">
+              <option value="fas+eng" selected>فارسی + انگلیسی (پیشنهادی)</option>
+              <option value="fas">فقط فارسی</option>
+              <option value="eng">فقط انگلیسی</option>
+            </select>
+          </div>
+
+          <div class="option-item">
+            <label class="toggle-label">
+              <input type="checkbox" id="binarizeCheck">
+              <span>فیلتر ضدسایه و تقویت وضوح (CLAHE)</span>
+            </label>
+          </div>
+
+          <button id="startOcrBtn" class="btn btn-success" disabled>
+            ⚡️ شروع استخراج متن
+          </button>
+        </div>
+
+        <!-- Selected File Preview -->
+        <div class="file-preview-card" id="filePreviewCard" style="display: none;">
+          <div class="file-preview-info">
+            <span class="file-icon" id="previewIcon">📄</span>
+            <div class="file-details">
+              <span class="file-name" id="previewName">filename.jpg</span>
+              <span class="file-size" id="previewSize">0 KB</span>
+            </div>
+          </div>
+          <button class="btn-remove" id="removeFileBtn">✖ حذف</button>
+        </div>
+
+        <!-- Progress Spinner -->
+        <div class="loading-container" id="loadingContainer" style="display: none;">
+          <div class="spinner"></div>
+          <p id="loadingStatusText">در حال بهینه‌سازی عکس و استخراج کلمات...</p>
+        </div>
+
+        <!-- Result Box -->
+        <div class="result-section" id="resultSection" style="display: none;">
+          <div class="result-header">
+            <div class="result-stats">
+              <span class="stat-badge" id="charCountBadge">۰ کاراکتر</span>
+              <span class="stat-badge" id="wordCountBadge">۰ کلمه</span>
+              <span class="stat-badge" id="pagesBadge">۱ صفحه</span>
+            </div>
+            <div class="result-actions">
+              <button class="btn btn-outline" id="copyBtn">📋 کپی متن</button>
+              <button class="btn btn-outline" id="downloadTxtBtn">📄 دانلود TXT</button>
+              <button class="btn btn-primary" id="downloadDocxBtn">📝 دانلود فایل Word (.docx)</button>
+            </div>
+          </div>
+
+          <textarea id="resultTextArea" spellcheck="false" dir="rtl" placeholder="متن استخراج شده اینجا نمایش داده می‌شود..."></textarea>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Features / Value Prop -->
+    <section class="features-grid">
+      <div class="feature-item">
+        <div class="feat-icon">💎</div>
+        <h4>کاملاً رایگان و بدون اشتراک</h4>
+        <p>بدون نیاز به پرداخت هزینه یا ثبت کارت بانکی، به رایگان اسناد خود را تبدیل کنید.</p>
+      </div>
+      <div class="feature-item">
+        <div class="feat-icon">🔒</div>
+        <h4>حفظ امنیت و حریم خصوصی</h4>
+        <p>فایل‌های شما پس از پردازش بلافاصله حذف می‌شوند و نزد ما ذخیره نمی‌مانند.</p>
+      </div>
+      <div class="feature-item">
+        <div class="feat-icon">📝</div>
+        <h4>خروجی استاندارد Word راست‌به‌چپ</h4>
+        <p>فایل‌های ورد با فونت تمیز فارسی و جهت استاندارد RTL تحویل شما می‌گردند.</p>
+      </div>
+      <div class="feature-item">
+        <div class="feat-icon">🤖</div>
+        <h4>اتصال به ربات تلگرام</h4>
+        <p>همین امکانات را در ربات تلگرامی ما ۲۴ ساعته روی گوشی همراه خود داشته باشید.</p>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-content">
+      <p>© توسعه داده شده با عشق برای جامعه کاربران فارسی‌زبان | کاملاً متن‌باز و رایگان</p>
+      <div class="footer-links">
+        <a href="https://t.me/YourChannel" target="_blank">کانال تلگرام</a>
+        <span>•</span>
+        <a href="https://instagram.com/YourPage" target="_blank">اینستاگرام</a>
+        <span>•</span>
+        <a href="https://github.com/AnishtayiN/persian-ocr-bot" target="_blank">گیت‌هاب پروژه</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

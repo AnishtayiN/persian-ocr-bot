@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  persian-ocr:
+    build: .
+    container_name: persian_ocr_bot
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
+      - ./ocr_bot.db:/app/ocr_bot.db
