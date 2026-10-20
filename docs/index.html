@@ -14,6 +14,11 @@
 
   <!-- Tesseract.js (Client-side 100% Free OCR Engine - Zero Server Cost) -->
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+  <!-- PDF.js for Client-side PDF page rendering -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script>
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  </script>
   <!-- Client-side DOCX generator -->
   <script src="https://unpkg.com/docx@8.5.0/build/index.js"></script>
 
@@ -63,7 +68,7 @@
       align-items: center;
       padding-bottom: 16px;
       border-bottom: 1px solid var(--border);
-      margin-bottom: 20px;
+      margin-bottom: 18px;
     }
 
     .brand {
@@ -101,12 +106,12 @@
       display: none;
     }
 
-    /* Marketing & Growth Cards */
+    /* Growth Cards */
     .growth-cards {
       display: flex;
       flex-direction: column;
       gap: 10px;
-      margin-bottom: 20px;
+      margin-bottom: 18px;
     }
 
     .growth-box {
@@ -150,27 +155,26 @@
       background: var(--card-bg);
       border: 1px solid var(--border);
       border-radius: 16px;
-      padding: 22px;
+      padding: 20px;
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
     }
 
     .drop-zone {
       border: 2px dashed rgba(99, 102, 241, 0.4);
       border-radius: 14px;
-      padding: 30px 16px;
+      padding: 24px 16px;
       text-align: center;
-      cursor: pointer;
       background: rgba(15, 23, 42, 0.5);
       transition: all 0.2s;
     }
 
-    .drop-zone:hover {
+    .drop-zone:hover, .drop-zone.dragover {
       border-color: var(--primary);
       background: rgba(79, 70, 229, 0.1);
     }
 
     .upload-hint-icon {
-      font-size: 40px;
+      font-size: 38px;
       margin-bottom: 8px;
     }
 
@@ -185,15 +189,47 @@
       margin-bottom: 14px;
     }
 
-    .btn-choose {
+    .action-buttons-group {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn-choose-file {
       background: var(--primary);
       color: #fff;
-      padding: 8px 18px;
-      border-radius: 8px;
+      padding: 10px 18px;
+      border-radius: 10px;
       font-size: 13px;
       font-weight: 600;
       border: none;
       cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-choose-file:hover {
+      background: var(--primary-hover);
+    }
+
+    .btn-camera {
+      background: rgba(255, 255, 255, 0.1);
+      color: #f1f5f9;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      padding: 10px 18px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-camera:hover {
+      background: rgba(255, 255, 255, 0.18);
     }
 
     /* Options */
@@ -228,7 +264,7 @@
       background: var(--success);
       color: #fff;
       border: none;
-      padding: 8px 20px;
+      padding: 9px 22px;
       border-radius: 8px;
       font-size: 13px;
       font-weight: 600;
@@ -248,14 +284,26 @@
       align-items: center;
       gap: 12px;
       background: #0f172a;
-      padding: 8px 12px;
+      padding: 10px 14px;
       border-radius: 8px;
+      border: 1px solid #334155;
     }
 
     .thumb-preview img {
       width: 48px;
       height: 48px;
       object-fit: cover;
+      border-radius: 6px;
+    }
+
+    .thumb-icon-placeholder {
+      width: 48px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      background: rgba(79, 70, 229, 0.2);
       border-radius: 6px;
     }
 
@@ -277,7 +325,8 @@
       border: none;
       color: #f87171;
       cursor: pointer;
-      font-size: 14px;
+      font-size: 16px;
+      padding: 4px 8px;
     }
 
     /* Progress Bar */
@@ -337,7 +386,7 @@
 
     textarea {
       width: 100%;
-      height: 240px;
+      height: 250px;
       background: #0b1120;
       border: 1px solid #334155;
       border-radius: 10px;
@@ -369,7 +418,7 @@
         <span class="brand-icon">⚡️</span>
         <div class="brand-title">
           <h1>اسکنر و OCR فارسی رایگان</h1>
-          <p>بدون نیاز به سرور - اجرا مستقیم در گوشی و ویندوز</p>
+          <p>پشتیبانی از عکس گالری، اسناد PDF و دوربین مستقیم</p>
         </div>
       </div>
       <button id="installAppBtn" class="install-btn">📲 نصب روی گوشی</button>
@@ -402,26 +451,41 @@
 
     <!-- Main Studio Card -->
     <main class="main-card">
-      <input type="file" id="filePicker" accept="image/*" capture="environment" hidden>
+      
+      <!-- Input 1: Normal File Picker for Gallery & Documents (NO capture attribute!) -->
+      <input type="file" id="filePicker" accept="image/*,application/pdf" hidden>
+      
+      <!-- Input 2: Dedicated Camera Picker (With capture attribute for instant photo) -->
+      <input type="file" id="cameraPicker" accept="image/*" capture="environment" hidden>
       
       <!-- Dropzone -->
       <div class="drop-zone" id="dropArea">
-        <div class="upload-hint-icon">📷</div>
-        <h3>عکس کتاب یا جزوه را انتخاب کنید</h3>
-        <p>با گوشی عکس بگیرید یا عکسی از گالری انتخاب فرمایید</p>
-        <button type="button" class="btn-choose" onclick="document.getElementById('filePicker').click()">
-          📸 گرفتن عکس یا انتخاب فایل
-        </button>
+        <div class="upload-hint-icon">📁</div>
+        <h3>انتخاب فایل یا عکس برای تبدیل به متن</h3>
+        <p>می‌توانید از حافظه گوشی یا کامپیوتر فایل انتخاب کنید یا با دوربین عکس بگیرید</p>
+        
+        <div class="action-buttons-group">
+          <!-- Button 1: File & Gallery Picker -->
+          <button type="button" class="btn-choose-file" onclick="document.getElementById('filePicker').click()">
+            📁 انتخاب فایل (از گالری یا PDF)
+          </button>
+          
+          <!-- Button 2: Direct Camera Capture -->
+          <button type="button" class="btn-camera" onclick="document.getElementById('cameraPicker').click()">
+            📸 عکاسی مستقیم با دوربین
+          </button>
+        </div>
       </div>
 
       <!-- Thumbnail Preview -->
       <div class="thumb-preview" id="thumbPreview">
-        <img id="thumbImg" src="" alt="پیش‌نمایش">
+        <img id="thumbImg" src="" alt="پیش‌نمایش" style="display: none;">
+        <div class="thumb-icon-placeholder" id="thumbPlaceholder" style="display: none;">📑</div>
         <div class="thumb-details">
-          <div class="thumb-name" id="thumbName">photo.jpg</div>
+          <div class="thumb-name" id="thumbName">file.pdf</div>
           <div style="font-size: 10px; color: var(--text-muted);" id="thumbSize">0 KB</div>
         </div>
-        <button class="btn-clear" id="clearBtn">✖</button>
+        <button class="btn-clear" id="clearBtn">✖ حذف</button>
       </div>
 
       <!-- Controls -->
@@ -443,7 +507,7 @@
         <div class="progress-bar-bg">
           <div class="progress-bar-fill" id="progressBar"></div>
         </div>
-        <div class="progress-text" id="statusText">در حال بارگذاری مدل هوش مصنوعی...</div>
+        <div class="progress-text" id="statusText">در حال آماده‌سازی فایل...</div>
       </div>
 
       <!-- Result -->
@@ -459,7 +523,7 @@
 
     <!-- Footer -->
     <footer class="app-footer">
-      <p>۱۰۰٪ رایگان و بدون نیاز به اینترنت پرسرعت | بدون ذخیره اطلاعات در هیچ سروری</p>
+      <p>۱۰۰٪ رایگان و بدون نیاز به سرور | پردازش محلی بدون افشای حریم خصوصی</p>
     </footer>
   </div>
 
@@ -488,9 +552,11 @@
     });
 
     const filePicker = document.getElementById('filePicker');
+    const cameraPicker = document.getElementById('cameraPicker');
     const dropArea = document.getElementById('dropArea');
     const thumbPreview = document.getElementById('thumbPreview');
     const thumbImg = document.getElementById('thumbImg');
+    const thumbPlaceholder = document.getElementById('thumbPlaceholder');
     const thumbName = document.getElementById('thumbName');
     const thumbSize = document.getElementById('thumbSize');
     const clearBtn = document.getElementById('clearBtn');
@@ -507,9 +573,36 @@
 
     let currentFile = null;
 
+    // File from Gallery / Storage
     filePicker.addEventListener('change', (e) => {
       if (e.target.files && e.target.files[0]) {
         handleFile(e.target.files[0]);
+      }
+    });
+
+    // File from Camera
+    cameraPicker.addEventListener('change', (e) => {
+      if (e.target.files && e.target.files[0]) {
+        handleFile(e.target.files[0]);
+      }
+    });
+
+    // Drag and Drop
+    ['dragenter', 'dragover'].forEach(name => {
+      dropArea.addEventListener(name, (e) => {
+        e.preventDefault();
+        dropArea.classList.add('dragover');
+      });
+    });
+    ['dragleave', 'drop'].forEach(name => {
+      dropArea.addEventListener(name, (e) => {
+        e.preventDefault();
+        dropArea.classList.remove('dragover');
+      });
+    });
+    dropArea.addEventListener('drop', (e) => {
+      if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]) {
+        handleFile(e.dataTransfer.files[0]);
       }
     });
 
@@ -518,23 +611,35 @@
       thumbName.textContent = file.name;
       thumbSize.textContent = (file.size / 1024).toFixed(1) + ' KB';
       
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        thumbImg.src = e.target.result;
-        thumbPreview.style.display = 'flex';
-        runBtn.disabled = false;
-      };
-      reader.readAsDataURL(file);
+      const isPdf = file.name.toLowerCase().endsWith('.pdf') || file.type === 'application/pdf';
+
+      if (isPdf) {
+        thumbImg.style.display = 'none';
+        thumbPlaceholder.style.display = 'flex';
+        thumbPlaceholder.textContent = '📑';
+      } else {
+        thumbPlaceholder.style.display = 'none';
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          thumbImg.src = e.target.result;
+          thumbImg.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+      }
+
+      thumbPreview.style.display = 'flex';
+      runBtn.disabled = false;
     }
 
     clearBtn.addEventListener('click', () => {
       currentFile = null;
       filePicker.value = '';
+      cameraPicker.value = '';
       thumbPreview.style.display = 'none';
       runBtn.disabled = true;
     });
 
-    // Run 100% Free Client-side OCR with Tesseract.js
+    // Run OCR (Handles both Image and PDF)
     runBtn.addEventListener('click', async () => {
       if (!currentFile) return;
 
@@ -543,6 +648,8 @@
       runBtn.disabled = true;
       progressBar.style.width = '10%';
       statusText.textContent = 'در حال راه‌اندازی موتور هوش مصنوعی...';
+
+      const isPdf = currentFile.name.toLowerCase().endsWith('.pdf') || currentFile.type === 'application/pdf';
 
       try {
         const lang = langChoice.value;
@@ -560,17 +667,44 @@
           }
         });
 
-        statusText.textContent = 'در حال خواندن خطوط و پاراگراف‌ها...';
-        const res = await worker.recognize(currentFile);
+        let fullText = "";
+
+        if (isPdf) {
+          statusText.textContent = 'در حال خواندن صفحات PDF...';
+          const arrayBuffer = await currentFile.arrayBuffer();
+          const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+          const maxPages = Math.min(pdf.numPages, 10);
+
+          for (let pNum = 1; pNum <= maxPages; pNum++) {
+            statusText.textContent = `در حال پردازش صفحه ${pNum} از ${maxPages}...`;
+            progressBar.style.width = Math.round((pNum / maxPages) * 100) + '%';
+
+            const page = await pdf.getPage(pNum);
+            const viewport = page.getViewport({ scale: 1.5 });
+            const canvas = document.createElement('canvas');
+            canvas.width = viewport.width;
+            canvas.height = viewport.height;
+            const ctx = canvas.getContext('2d');
+
+            await page.render({ canvasContext: ctx, viewport: viewport }).promise;
+            const pageRes = await worker.recognize(canvas);
+            
+            fullText += `━━━━━━━━ 📄 صفحه ${pNum} ━━━━━━━━\n\n` + pageRes.data.text.trim() + "\n\n";
+          }
+        } else {
+          statusText.textContent = 'در حال پردازش تصویر...';
+          const res = await worker.recognize(currentFile);
+          fullText = res.data.text.trim();
+        }
+
         await worker.terminate();
 
-        const recognizedText = res.data.text.trim();
-        outputArea.value = recognizedText || '⚠️ متنی در این تصویر شناسایی نشد!';
+        outputArea.value = fullText || '⚠️ متنی در این فایل شناسایی نشد!';
         resultBox.style.display = 'block';
         resultBox.scrollIntoView({ behavior: 'smooth' });
 
       } catch (err) {
-        alert('خطا در پردازش تصویر: ' + err.message);
+        alert('خطا در پردازش فایل: ' + err.message);
       } finally {
         progressBox.style.display = 'none';
         runBtn.disabled = false;
@@ -597,7 +731,7 @@
       a.click();
     });
 
-    // Save Word (.docx) Client-side
+    // Save Word (.docx)
     saveDocxBtn.addEventListener('click', async () => {
       const text = outputArea.value;
       if (!text) return;

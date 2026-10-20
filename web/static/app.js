@@ -8,6 +8,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const dropZone = document.getElementById("dropZone");
   const fileInput = document.getElementById("fileInput");
+  const cameraInput = document.getElementById("cameraInput");
   const filePreviewCard = document.getElementById("filePreviewCard");
   const previewName = document.getElementById("previewName");
   const previewSize = document.getElementById("previewSize");
@@ -68,6 +69,14 @@ document.addEventListener("DOMContentLoaded", () => {
       handleFileSelected(e.target.files[0]);
     }
   });
+
+  if (cameraInput) {
+    cameraInput.addEventListener("change", (e) => {
+      if (e.target.files && e.target.files.length > 0) {
+        handleFileSelected(e.target.files[0]);
+      }
+    });
+  }
 
   function handleFileSelected(file) {
     selectedFile = file;

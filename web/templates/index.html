@@ -65,13 +65,19 @@
         <!-- Dropzone -->
         <div class="dropzone" id="dropZone">
           <input type="file" id="fileInput" accept="image/*,application/pdf" hidden>
+          <input type="file" id="cameraInput" accept="image/*" capture="environment" hidden>
           <div class="dropzone-content">
             <div class="upload-icon">📄</div>
-            <h3>عکس کتاب یا فایل PDF را اینجا بکشید و رها کنید</h3>
-            <p>یا روی دکمه زیر برای انتخاب فایل کلیک کنید (حداکثر ۱۵ مگابایت)</p>
-            <button type="button" class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
-              انتخاب عکس یا سند PDF
-            </button>
+            <h3>عکس کتاب یا فایل PDF را اینجا بکشید یا انتخاب کنید</h3>
+            <p>می‌توانید از گالری و حافظه دستگاه فایل انتخاب کنید یا با دوربین عکس بگیرید</p>
+            <div style="display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+              <button type="button" class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
+                📁 انتخاب فایل از گالری یا PDF
+              </button>
+              <button type="button" class="btn btn-outline" onclick="document.getElementById('cameraInput').click()">
+                📸 عکاسی مستقیم با دوربین
+              </button>
+            </div>
             <div class="file-types-hint">پشتیبانی از فرمت‌های: JPG, PNG, WEBP, PDF</div>
           </div>
         </div>
