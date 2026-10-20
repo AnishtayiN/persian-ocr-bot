@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>اسکنر و OCR فارسی رایگان (اندروید و ویندوز)</title>
+  
+  <!-- PWA Manifest for Android & Windows -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#4f46e5">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="apple-touch-icon" href="manifest.json">
+
+  <!-- Tesseract.js (Client-side 100% Free OCR Engine - Zero Server Cost) -->
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+  <!-- Client-side DOCX generator -->
+  <script src="https://unpkg.com/docx@8.5.0/build/index.js"></script>
+
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-hover: #4338ca;
+      --success: #10b981;
+      --tg-blue: #229ed9;
+      --ig-pink: #d62976;
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --border: rgba(255, 255, 255, 0.08);
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      line-height: 1.6;
+    }
+
+    .container {
+      width: 92%;
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 16px 0;
+      flex: 1;
+    }
+
+    /* Header */
+    .app-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 20px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-icon {
+      font-size: 28px;
+      background: rgba(99, 102, 241, 0.2);
+      border-radius: 10px;
+      padding: 4px 8px;
+    }
+
+    .brand-title h1 {
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .brand-title p {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .install-btn {
+      background: rgba(16, 185, 129, 0.2);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: none;
+    }
+
+    /* Marketing & Growth Cards */
+    .growth-cards {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .growth-box {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .growth-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+    }
+
+    .growth-icon {
+      font-size: 24px;
+    }
+
+    .btn-action {
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      text-decoration: none;
+      white-space: nowrap;
+      border: none;
+      cursor: pointer;
+    }
+
+    .btn-tg { background: var(--tg-blue); color: #fff; }
+    .btn-ig { background: var(--ig-pink); color: #fff; }
+
+    /* OCR Card */
+    .main-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 22px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+    }
+
+    .drop-zone {
+      border: 2px dashed rgba(99, 102, 241, 0.4);
+      border-radius: 14px;
+      padding: 30px 16px;
+      text-align: center;
+      cursor: pointer;
+      background: rgba(15, 23, 42, 0.5);
+      transition: all 0.2s;
+    }
+
+    .drop-zone:hover {
+      border-color: var(--primary);
+      background: rgba(79, 70, 229, 0.1);
+    }
+
+    .upload-hint-icon {
+      font-size: 40px;
+      margin-bottom: 8px;
+    }
+
+    .drop-zone h3 {
+      font-size: 16px;
+      margin-bottom: 4px;
+    }
+
+    .drop-zone p {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 14px;
+    }
+
+    .btn-choose {
+      background: var(--primary);
+      color: #fff;
+      padding: 8px 18px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+    }
+
+    /* Options */
+    .controls-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .lang-selector {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .lang-selector select {
+      background: #0f172a;
+      border: 1px solid #334155;
+      color: #fff;
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      outline: none;
+    }
+
+    .btn-start {
+      background: var(--success);
+      color: #fff;
+      border: none;
+      padding: 8px 20px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+
+    .btn-start:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* Preview Thumbnail */
+    .thumb-preview {
+      display: none;
+      margin-top: 14px;
+      align-items: center;
+      gap: 12px;
+      background: #0f172a;
+      padding: 8px 12px;
+      border-radius: 8px;
+    }
+
+    .thumb-preview img {
+      width: 48px;
+      height: 48px;
+      object-fit: cover;
+      border-radius: 6px;
+    }
+
+    .thumb-details {
+      flex: 1;
+      font-size: 12px;
+    }
+
+    .thumb-name {
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 200px;
+    }
+
+    .btn-clear {
+      background: none;
+      border: none;
+      color: #f87171;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    /* Progress Bar */
+    .progress-box {
+      display: none;
+      margin-top: 18px;
+      text-align: center;
+    }
+
+    .progress-bar-bg {
+      width: 100%;
+      height: 8px;
+      background: #0f172a;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 6px;
+    }
+
+    .progress-bar-fill {
+      width: 0%;
+      height: 100%;
+      background: linear-gradient(90deg, #4f46e5, #10b981);
+      transition: width 0.2s ease;
+    }
+
+    .progress-text {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* Result Box */
+    .result-box {
+      display: none;
+      margin-top: 20px;
+    }
+
+    .result-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn-tool {
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+      border: 1px solid var(--border);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .btn-tool:hover { background: rgba(255, 255, 255, 0.15); }
+    .btn-docx { background: var(--primary); border-color: var(--primary); }
+
+    textarea {
+      width: 100%;
+      height: 240px;
+      background: #0b1120;
+      border: 1px solid #334155;
+      border-radius: 10px;
+      padding: 12px;
+      color: #fff;
+      font-size: 14px;
+      line-height: 1.8;
+      resize: vertical;
+      outline: none;
+    }
+
+    /* Footer */
+    .app-footer {
+      text-align: center;
+      padding: 16px 0;
+      font-size: 12px;
+      color: var(--text-muted);
+      border-top: 1px solid var(--border);
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    
+    <!-- Header -->
+    <header class="app-header">
+      <div class="brand">
+        <span class="brand-icon">⚡️</span>
+        <div class="brand-title">
+          <h1>اسکنر و OCR فارسی رایگان</h1>
+          <p>بدون نیاز به سرور - اجرا مستقیم در گوشی و ویندوز</p>
+        </div>
+      </div>
+      <button id="installAppBtn" class="install-btn">📲 نصب روی گوشی</button>
+    </header>
+
+    <!-- Marketing Growth Banners -->
+    <section class="growth-cards">
+      <div class="growth-box">
+        <div class="growth-info">
+          <span class="growth-icon">📢</span>
+          <div>
+            <strong>کانال رسمی تلگرام</strong>
+            <p style="font-size: 11px; color: var(--text-muted);">عضویت برای دریافت آپدیت‌ها و قالب‌های رایگان</p>
+          </div>
+        </div>
+        <a href="https://t.me/YourChannel" target="_blank" class="btn-action btn-tg">عضویت</a>
+      </div>
+
+      <div class="growth-box">
+        <div class="growth-info">
+          <span class="growth-icon">📸</span>
+          <div>
+            <strong>استوری روزانه اینستاگرام</strong>
+            <p style="font-size: 11px; color: var(--text-muted);">مشاهده استوری امروز برای دریافت هدیه</p>
+          </div>
+        </div>
+        <a href="https://instagram.com/YourPage" target="_blank" class="btn-action btn-ig">پیج اینستاگرام</a>
+      </div>
+    </section>
+
+    <!-- Main Studio Card -->
+    <main class="main-card">
+      <input type="file" id="filePicker" accept="image/*" capture="environment" hidden>
+      
+      <!-- Dropzone -->
+      <div class="drop-zone" id="dropArea">
+        <div class="upload-hint-icon">📷</div>
+        <h3>عکس کتاب یا جزوه را انتخاب کنید</h3>
+        <p>با گوشی عکس بگیرید یا عکسی از گالری انتخاب فرمایید</p>
+        <button type="button" class="btn-choose" onclick="document.getElementById('filePicker').click()">
+          📸 گرفتن عکس یا انتخاب فایل
+        </button>
+      </div>
+
+      <!-- Thumbnail Preview -->
+      <div class="thumb-preview" id="thumbPreview">
+        <img id="thumbImg" src="" alt="پیش‌نمایش">
+        <div class="thumb-details">
+          <div class="thumb-name" id="thumbName">photo.jpg</div>
+          <div style="font-size: 10px; color: var(--text-muted);" id="thumbSize">0 KB</div>
+        </div>
+        <button class="btn-clear" id="clearBtn">✖</button>
+      </div>
+
+      <!-- Controls -->
+      <div class="controls-row">
+        <div class="lang-selector">
+          <label>🌐 زبان تشخیص:</label>
+          <select id="langChoice">
+            <option value="fas+eng" selected>فارسی + انگلیسی</option>
+            <option value="fas">فقط فارسی</option>
+            <option value="eng">فقط انگلیسی</option>
+          </select>
+        </div>
+
+        <button id="runBtn" class="btn-start" disabled>⚡️ استخراج متن</button>
+      </div>
+
+      <!-- Progress -->
+      <div class="progress-box" id="progressBox">
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill" id="progressBar"></div>
+        </div>
+        <div class="progress-text" id="statusText">در حال بارگذاری مدل هوش مصنوعی...</div>
+      </div>
+
+      <!-- Result -->
+      <div class="result-box" id="resultBox">
+        <div class="result-actions">
+          <button class="btn-tool" id="copyResultBtn">📋 کپی متن</button>
+          <button class="btn-tool" id="saveTxtBtn">📄 دانلود TXT</button>
+          <button class="btn-tool btn-docx" id="saveDocxBtn">📝 دانلود فایل Word (.docx)</button>
+        </div>
+        <textarea id="outputArea" dir="rtl" placeholder="متن استخراج شده..."></textarea>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <p>۱۰۰٪ رایگان و بدون نیاز به اینترنت پرسرعت | بدون ذخیره اطلاعات در هیچ سروری</p>
+    </footer>
+  </div>
+
+  <script>
+    // Register Service Worker for Android PWA
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
+    }
+
+    // Android Install Prompt
+    let deferredPrompt;
+    const installBtn = document.getElementById('installAppBtn');
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      installBtn.style.display = 'block';
+    });
+    installBtn.addEventListener('click', () => {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then(() => {
+          installBtn.style.display = 'none';
+          deferredPrompt = null;
+        });
+      }
+    });
+
+    const filePicker = document.getElementById('filePicker');
+    const dropArea = document.getElementById('dropArea');
+    const thumbPreview = document.getElementById('thumbPreview');
+    const thumbImg = document.getElementById('thumbImg');
+    const thumbName = document.getElementById('thumbName');
+    const thumbSize = document.getElementById('thumbSize');
+    const clearBtn = document.getElementById('clearBtn');
+    const runBtn = document.getElementById('runBtn');
+    const langChoice = document.getElementById('langChoice');
+    const progressBox = document.getElementById('progressBox');
+    const progressBar = document.getElementById('progressBar');
+    const statusText = document.getElementById('statusText');
+    const resultBox = document.getElementById('resultBox');
+    const outputArea = document.getElementById('outputArea');
+    const copyResultBtn = document.getElementById('copyResultBtn');
+    const saveTxtBtn = document.getElementById('saveTxtBtn');
+    const saveDocxBtn = document.getElementById('saveDocxBtn');
+
+    let currentFile = null;
+
+    filePicker.addEventListener('change', (e) => {
+      if (e.target.files && e.target.files[0]) {
+        handleFile(e.target.files[0]);
+      }
+    });
+
+    function handleFile(file) {
+      currentFile = file;
+      thumbName.textContent = file.name;
+      thumbSize.textContent = (file.size / 1024).toFixed(1) + ' KB';
+      
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        thumbImg.src = e.target.result;
+        thumbPreview.style.display = 'flex';
+        runBtn.disabled = false;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    clearBtn.addEventListener('click', () => {
+      currentFile = null;
+      filePicker.value = '';
+      thumbPreview.style.display = 'none';
+      runBtn.disabled = true;
+    });
+
+    // Run 100% Free Client-side OCR with Tesseract.js
+    runBtn.addEventListener('click', async () => {
+      if (!currentFile) return;
+
+      progressBox.style.display = 'block';
+      resultBox.style.display = 'none';
+      runBtn.disabled = true;
+      progressBar.style.width = '10%';
+      statusText.textContent = 'در حال راه‌اندازی موتور هوش مصنوعی...';
+
+      try {
+        const lang = langChoice.value;
+        const worker = await Tesseract.createWorker(lang, 1, {
+          logger: m => {
+            if (m.status === 'recognizing text') {
+              const p = Math.round(m.progress * 100);
+              progressBar.style.width = p + '%';
+              statusText.textContent = `در حال استخراج کلمات: ${p}٪`;
+            } else if (m.status === 'loading tesseract core') {
+              statusText.textContent = 'در حال بارگذاری هسته اسکنر...';
+            } else if (m.status.includes('loading')) {
+              statusText.textContent = 'در حال آماده‌سازی زبان فارسی...';
+            }
+          }
+        });
+
+        statusText.textContent = 'در حال خواندن خطوط و پاراگراف‌ها...';
+        const res = await worker.recognize(currentFile);
+        await worker.terminate();
+
+        const recognizedText = res.data.text.trim();
+        outputArea.value = recognizedText || '⚠️ متنی در این تصویر شناسایی نشد!';
+        resultBox.style.display = 'block';
+        resultBox.scrollIntoView({ behavior: 'smooth' });
+
+      } catch (err) {
+        alert('خطا در پردازش تصویر: ' + err.message);
+      } finally {
+        progressBox.style.display = 'none';
+        runBtn.disabled = false;
+      }
+    });
+
+    // Copy Text
+    copyResultBtn.addEventListener('click', () => {
+      if (!outputArea.value) return;
+      navigator.clipboard.writeText(outputArea.value);
+      const orig = copyResultBtn.textContent;
+      copyResultBtn.textContent = '✅ کپی شد!';
+      setTimeout(() => copyResultBtn.textContent = orig, 2000);
+    });
+
+    // Save TXT
+    saveTxtBtn.addEventListener('click', () => {
+      const text = outputArea.value;
+      if (!text) return;
+      const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'OCR_Text.txt';
+      a.click();
+    });
+
+    // Save Word (.docx) Client-side
+    saveDocxBtn.addEventListener('click', async () => {
+      const text = outputArea.value;
+      if (!text) return;
+
+      try {
+        const { Document, Packer, Paragraph, TextRun } = docx;
+        const paragraphs = text.split('\n').filter(l => l.trim()).map(line => {
+          return new Paragraph({
+            bidirectional: true,
+            children: [
+              new TextRun({
+                text: line,
+                font: "B Nazanin",
+                size: 26
+              })
+            ]
+          });
+        });
+
+        const doc = new Document({
+          sections: [{
+            properties: {},
+            children: [
+              new Paragraph({
+                bidirectional: true,
+                children: [
+                  new TextRun({
+                    text: "متن استخراج شده توسط OCR رایگان",
+                    bold: true,
+                    size: 32,
+                    font: "B Nazanin"
+                  })
+                ]
+              }),
+              ...paragraphs
+            ]
+          }]
+        });
+
+        const blob = await Packer.toBlob(doc);
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'OCR_Document.docx';
+        a.click();
+      } catch (e) {
+        alert('خطا در ساخت فایل Word: ' + e.message);
+      }
+    });
+  </script>
+</body>
+</html>
